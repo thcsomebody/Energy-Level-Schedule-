@@ -1,4 +1,4 @@
- a system that integrates Gemini, Airtable, and Tana to track daily energy levels and productivity involves several steps. Below is a high-level overview of how you can set up this system:
+A system that integrates n8n, Airtable, and Tana to track daily energy levels and productivity involves several steps. Below is a high-level overview of how you can set up this system:
 Step 1: Set Up Airtable
 
     Create an Airtable Base:
@@ -33,16 +33,16 @@ Step 2: Set Up Tana
     Define Fields:
         Similar to Airtable, define fields for Date, Energy Level, Focus Level, Task Impact, and Notes.
 
-Step 3: Set Up Gemini
+Step 3: Set Up n8n
 
-    Create a Gemini Workflow:
+    Create a n8n Workflow:
         Go to Gemini and create a new workflow.
         Use the JSON workflow provided to structure your workflow.
 
     Configure Webhooks:
         Set up a webhook to receive data from a form or another application where you will input your daily energy levels and task data.
 
-Step 4: Integrate Airtable and Tana with Gemini
+Step 4: Integrate Airtable and Tana with n8n
 
     Airtable Integration:
         Use Airtable's API to connect it with Gemini.
@@ -55,7 +55,7 @@ Step 4: Integrate Airtable and Tana with Gemini
 Step 5: Data Parsing and Calculations
 
     Parse Data:
-        In Gemini, create steps to parse the incoming data from the webhook.
+        In n8n, create steps to parse the incoming data from the webhook.
         Structure the data to match the fields in Airtable and Tana.
 
     Calculate Metrics:
@@ -65,7 +65,7 @@ Step 5: Data Parsing and Calculations
 Step 6: Generate Daily Reports
 
     Create Daily Reports:
-        In Gemini, create a step to generate daily reports based on the parsed and calculated data.
+        In n8n, create a step to generate daily reports based on the parsed and calculated data.
         Include average energy levels, focus levels, task impacts, insights, and recommendations in the report.
 
     Save Daily Reports:
@@ -74,5 +74,5 @@ Step 6: Generate Daily Reports
 Step 7: Set Up Daily Reminders
 
     Create Reminders:
-        Use Gemini to set up daily reminders to input your energy levels and task data.
+        Use n8n to set up daily reminders to input your energy levels and task data.
         You can use email notifications or integrate with a messaging app to send reminders.

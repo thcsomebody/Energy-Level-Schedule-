@@ -1,0 +1,242 @@
+{
+  "name": "Daily Schedule Tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "daily-data",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Daily Data Input",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "daily-schedule-webhook"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parse and structure incoming daily data\nconst inputData = items[0].json;\n\n// Extract energy levels\nconst energyData = {\n  beforeSleeping: parseFloat(inputData.beforeSleeping) || 0,\n  afterWaking: parseFloat(inputData.afterWaking) || 0,\n  afterBreakfast: parseFloat(inputData.afterBreakfast) || 0,\n  afterLunch: parseFloat(inputData.afterLunch) || 0,\n  afterDinner: parseFloat(inputData.afterDinner) || 0\n};\n\n// Calculate perceived energy percentage\nconst perceivedEnergyPercentage = (energyData.afterWaking / 5) * 100;\n\n// Extract task data\nconst taskData = {\n  highImpactTasks: inputData.highImpactTasks || [],\n  perceivedImpactScore: parseFloat(inputData.perceivedImpactScore) || 0,\n  actualImpactScore: parseFloat(inputData.actualImpactScore) || 0,\n  taskDifficulty: parseFloat(inputData.taskDifficulty) || 0,\n  taskCategory: inputData.taskCategory || 'unknown'\n};\n\n// Extract attention and focus data\nconst attentionData = {\n  attentionPeakTime: inputData.attentionPeakTime || '',\n  attentionPeakDuration: parseFloat(inputData.attentionPeakDuration) || 0,\n  socialTime: inputData.socialTime || '',\n  socialDuration: parseFloat(inputData.socialDuration) || 0\n};\n\n// Extract distraction data\nconst distractionData = {\n  type: inputData.distractionType || 'internal',\n  timeCost: parseFloat(inputData.distractionTimeCost) || 0,\n  level: parseFloat(inputData.distractionLevel) || 0,\n  stage: inputData.distractionStage || 'focus'\n};\n\n// Calculate focus impact\nconst focusImpact = distractionData.timeCost > 0 ? \n  (distractionData.timeCost / (parseFloat(inputData.taskDuration) || 1)) : 0;\n\n// Structure output\nreturn [{\n  json: {\n    date: inputData.date || new Date().toISOString().split('T')[0],\n    person: inputData.person || 'unknown',\n    energyData,\n    perceivedEnergyPercentage,\n    taskData,\n    attentionData,\n    distractionData,\n    focusImpact,\n    rawInput: inputData\n  }\n}];"
+      },
+      "id": "data-parser",
+      "name": "Parse Daily Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Calculate mathematical models and metrics\nconst data = items[0].json;\n\n// Weighted Average Calculation\n// Sum of Perceived_Energy × Focus_impact + (Task_impact × Duration)\nconst weightedAverage = (\n  (data.perceivedEnergyPercentage / 100) * data.focusImpact +\n  (data.taskData.actualImpactScore / 3) * (parseFloat(data.rawInput.taskDuration) || 0)\n);\n\n// Exponential Decay Model for Attention\n// A(t) = A_0 * e^(-lambda * t)\nconst calculateAttentionDecay = (initialAttention, decayConstant, time) => {\n  return initialAttention * Math.exp(-decayConstant * time);\n};\n\n// Performance Decrement Function\n// P(t) = P_0 * e^(-t/tau) + P_min\nconst calculatePerformanceDecrement = (initialPerf, timeConstant, time, minPerf) => {\n  return initialPerf * Math.exp(-time / timeConstant) + minPerf;\n};\n\n// Attention Restoration Model\n// A(t) = A_max * (1 - e^(-kt))\nconst calculateAttentionRestoration = (maxAttention, restoreRate, time) => {\n  return maxAttention * (1 - Math.exp(-restoreRate * time));\n};\n\n// Impact per Person calculation\nconst highImpactTaskCount = data.taskData.highImpactTasks.length;\nconst totalTasks = parseFloat(data.rawInput.totalTasks) || 1;\nconst impactPerPerson = highImpactTaskCount / totalTasks;\n\n// Distribution of Impact\nconst tasksWithImpactScore = data.taskData.actualImpactScore > 0 ? 1 : 0;\nconst distributionOfImpact = tasksWithImpactScore / totalTasks;\n\n// High Energy Slots efficiency\nconst estimatedTime = parseFloat(data.rawInput.estimatedTime) || 1;\nconst actualTime = parseFloat(data.rawInput.actualTime) || 1;\nconst highEnergyEfficiency = (actualTime / estimatedTime) * 100;\n\nreturn [{\n  json: {\n    ...data,\n    calculations: {\n      weightedAverage,\n      impactPerPerson,\n      distributionOfImpact,\n      highEnergyEfficiency,\n      attentionModels: {\n        decay: calculateAttentionDecay(1.0, 0.1, 60), // Example: 1 hour\n        performance: calculatePerformanceDecrement(1.0, 30, 60, 0.2),\n        restoration: calculateAttentionRestoration(1.0, 0.05, 15) // 15 min break\n      }\n    }\n  }\n}];"
+      },
+      "id": "calculations",
+      "name": "Calculate Metrics",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate analysis and insights\nconst data = items[0].json;\nconst calc = data.calculations;\n\n// Determine chronotype recommendation\nlet chronotypeRecommendation = '';\nif (data.attentionData.attentionPeakTime.includes('morning') || \n    data.attentionData.attentionPeakTime.includes('breakfast')) {\n  chronotypeRecommendation = 'Morning Lark: Schedule your most demanding, high-concentration tasks for the morning. Use afternoons for less demanding work, meetings, or administrative tasks.';\n} else {\n  chronotypeRecommendation = 'Night Owl: Ease into your day with low-energy tasks. Schedule your high-focus work for late afternoon or evening.';\n}\n\n// Energy level assessment\nlet energyAssessment = '';\nif (data.perceivedEnergyPercentage >= 80) {\n  energyAssessment = 'High energy day - optimal for challenging tasks';\n} else if (data.perceivedEnergyPercentage >= 60) {\n  energyAssessment = 'Moderate energy - good for routine tasks';\n} else {\n  energyAssessment = 'Low energy - focus on light tasks and recovery';\n}\n\n// Focus quality assessment\nlet focusQuality = '';\nif (data.focusImpact <= 0.3) {\n  focusQuality = 'Excellent focus - minimal distractions';\n} else if (data.focusImpact <= 0.6) {\n  focusQuality = 'Good focus - some distractions managed';\n} else {\n  focusQuality = 'Poor focus - high distraction impact';\n}\n\n// Task impact assessment\nlet taskImpactAssessment = '';\nif (calc.impactPerPerson >= 0.7) {\n  taskImpactAssessment = 'High impact day - significant progress made';\n} else if (calc.impactPerPerson >= 0.4) {\n  taskImpactAssessment = 'Moderate impact - steady progress';\n} else {\n  taskImpactAssessment = 'Low impact - consider task prioritization';\n}\n\nreturn [{\n  json: {\n    ...data,\n    insights: {\n      chronotypeRecommendation,\n      energyAssessment,\n      focusQuality,\n      taskImpactAssessment,\n      overallScore: {\n        energy: data.perceivedEnergyPercentage,\n        focus: (1 - data.focusImpact) * 100,\n        impact: calc.impactPerPerson * 100,\n        efficiency: calc.highEnergyEfficiency\n      }\n    }\n  }\n}];"
+      },
+      "id": "analysis",
+      "name": "Generate Analysis",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "resource": "file",
+        "fileName": "={{$json.date}}_{{$json.person}}_daily_report.json",
+        "fileContent": "={{JSON.stringify($json, null, 2)}}",
+        "options": {}
+      },
+      "id": "save-json",
+      "name": "Save Daily Report",
+      "type": "n8n-nodes-base.files",
+      "typeVersion": 1,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Prepare data for Google Sheets or CSV export\nconst data = items[0].json;\n\nconst csvRow = {\n  Date: data.date,\n  Person: data.person,\n  'Perceived Energy %': data.perceivedEnergyPercentage,\n  'Before Sleeping': data.energyData.beforeSleeping,\n  'After Waking': data.energyData.afterWaking,\n  'After Breakfast': data.energyData.afterBreakfast,\n  'After Lunch': data.energyData.afterLunch,\n  'After Dinner': data.energyData.afterDinner,\n  'Perceived Impact Score': data.taskData.perceivedImpactScore,\n  'Actual Impact Score': data.taskData.actualImpactScore,\n  'Task Difficulty': data.taskData.taskDifficulty,\n  'Task Category': data.taskData.taskCategory,\n  'Attention Peak Time': data.attentionData.attentionPeakTime,\n  'Attention Peak Duration': data.attentionData.attentionPeakDuration,\n  'Social Time': data.attentionData.socialTime,\n  'Social Duration': data.attentionData.socialDuration,\n  'Distraction Type': data.distractionData.type,\n  'Distraction Time Cost': data.distractionData.timeCost,\n  'Distraction Level': data.distractionData.level,\n  'Focus Impact': data.focusImpact,\n  'Weighted Average': data.calculations.weightedAverage,\n  'Impact Per Person': data.calculations.impactPerPerson,\n  'High Energy Efficiency': data.calculations.highEnergyEfficiency,\n  'Energy Assessment': data.insights.energyAssessment,\n  'Focus Quality': data.insights.focusQuality,\n  'Task Impact Assessment': data.insights.taskImpactAssessment,\n  'Overall Energy Score': data.insights.overallScore.energy,\n  'Overall Focus Score': data.insights.overallScore.focus,\n  'Overall Impact Score': data.insights.overallScore.impact,\n  'Overall Efficiency Score': data.insights.overallScore.efficiency\n};\n\nreturn [{ json: csvRow }];"
+      },
+      "id": "csv-formatter",
+      "name": "Format for Export",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": "12GceCbKGUWOki_lGxUM4Y9p0WaxE6GG9vI130xNB8ec",
+        "sheetName": "Daily Data",
+        "columnToMatchOn": "Date",
+        "options": {}
+      },
+      "id": "google-sheets",
+      "name": "Update Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1340, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"success\", \"message\": \"Daily data processed successfully\", \"date\": $json.date, \"person\": $json.person, \"insights\": $json.insights } }}"
+      },
+      "id": "webhook-response",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 0 20 * * *"
+            }
+          ]
+        }
+      },
+      "id": "daily-trigger",
+      "name": "Daily Reminder",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate daily reminder message\nconst today = new Date().toISOString().split('T')[0];\n\nconst reminderMessage = {\n  subject: 'Daily Schedule Data Entry Reminder',\n  message: `Please complete your daily schedule data entry for ${today}. Include:\\n\\n` +\n           '• Energy levels throughout the day\\n' +\n           '• Task impact scores\\n' +\n           '• Attention peak times\\n' +\n           '• Distraction data\\n' +\n           '• Focus duration\\n\\n' +\n           'Submit via the webhook or manual entry form.',\n  date: today\n};\n\nreturn [{ json: reminderMessage }];"
+      },
+      "id": "reminder-message",
+      "name": "Generate Reminder",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 500]
+    },
+    {
+      "parameters": {
+        "authentication": "generic",
+        "genericAuthType": "httpBasicAuth",
+        "url": "https://api.example.com/send-notification",
+        "options": {}
+      },
+      "id": "send-notification",
+      "name": "Send Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 500]
+    }
+  ],
+  "connections": {
+    "Daily Data Input": {
+      "main": [
+        [
+          {
+            "node": "Parse Daily Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Daily Data": {
+      "main": [
+        [
+          {
+            "node": "Calculate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Metrics": {
+      "main": [
+        [
+          {
+            "node": "Generate Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Analysis": {
+      "main": [
+        [
+          {
+            "node": "Save Daily Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format for Export",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Daily Report": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format for Export": {
+      "main": [
+        [
+          {
+            "node": "Update Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Reminder": {
+      "main": [
+        [
+          {
+            "node": "Generate Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Reminder": {
+      "main": [
+        [
+          {
+            "node": "Send Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "1",
+  "id": "daily-schedule-tracker",
+  "meta": {
+    "instanceId": "daily-schedule-automation"
+  },
+  "tags": []
+}
+

@@ -49,8 +49,8 @@ Step 4: Integrate Airtable and Tana with n8n
         Set up triggers in Gemini to add or update records in Airtable based on the data received from the webhook.
 
     Tana Integration:
-        Use Tana's API to connect it with Gemini.
-        Set up triggers in Gemini to add or update records in Tana based on the data received from the webhook.
+        Use Tana's API to connect it with n8n.
+        Set up triggers in n8n to add or update records in Tana based on the data received from the webhook.
 
 Step 5: Data Parsing and Calculations
 

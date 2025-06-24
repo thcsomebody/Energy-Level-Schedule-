@@ -1,0 +1,63 @@
+.
+The Concept: Schedule Ninja
+
+You are a young ninja in training at the prestigious "Productivity Dojo." Your wise and enigmatic mentor, Sensei Tana (a nod to your tool), teaches you that the path to true mastery lies not in conquering enemies, but in conquering the self and the chaos of the day.
+Each day is a new training level. Your goal is to slice through your tasks and harness your energy, while deflecting the distractions that seek to throw you off balance. Your performance is tracked in the Dojo's ancient scrolls (Airtable & Google Sheets).
+
+The Characters
+You, the Player : A nimble, determined ninja created in the style of Google's Veo or Wan Ai, with a sleek, modern design. KAI's outfit color and aura could even change based on their average energy level for the day.
+Sensei Tana: The wise old master of the Dojo. He doesn't appear on screen often, but his wisdom guides you. His voice (or text prompts) delivers the "Daily Reminders" and "Daily Reports," framed as ancient ninja wisdom.
+Nate the n8n-Bot: A small, floating robotic companion that follows KAI. Nate is the magical creature that forges the items for each level based on your daily input. He represents the automation power of n8n.
+
+The Gamified Workflow: From Data to Dojo
+Step 1 & 2: The Morning Ritual (Airtable/Tana Setup)
+Game Narrative: Before training can begin, KAI must meditate and declare their intentions for the day. This is where you, the player, input your data.
+Action: You fill out a simple form (the "Daily Data Input").
+Technical Mapping: This data is sent to your Airtable/Tana base, populating the Energy Levels and Tasks tables for the day.
+Step 3 & 4: The Forging of Challenges (n8n Workflow - Braze, Rewire)
+Game Narrative: Your loyal companion, Nate the n8n-Bot, takes your declared intentions. He flies into the Dojo's forge, where he uses digital fire to craft the elements for your training session.
+Action: The n8n workflow triggers.
+
+Technical Mapping:
+Parse Daily Data (Brants): Nate deciphers your input.
+Calculate Metrics (Rewire): Nate determines the properties of each item. High-priority tasks become large, juicy fruits. Low-energy days might mean fewer "Energy Orbs" appear. Many logged distractions result in more "Distraction Bombs."
+The Level Begins! (The Fruit Ninja Game)
+Game Narrative: You enter the training ground. Nate the n8n-Bot begins launching the forged items across the screen. "Your training begins now! Show me your focus!"
+
+The Items (based on your UI):
+FRUITS (Tasks): Slicing these earns points. The bigger the task, the bigger the fruit (e.g., an apple for a small task, a watermelon for a major one). Slicing multiple in one swipe creates a combo!
+Corresponds to: Your Tasks table.
+GREEN ORBS (Energy): Slicing these replenishes your "Focus Bar" (the orange/green bar at the top) and adds a small score bonus.
+Corresponds to: Your Energy Level input.
+PURPLE SPIKY STARS (Distractions): AVOID THESE! These are Distraction Bombs. Slicing one clouds the screen for a moment, breaks your combo, and deducts points.
+Corresponds to: Implicitly, the things that lower your Focus Level.
+YELLOW STARS (Focus): Slicing these rare items triggers "Zen Time" – everything slows down for a few seconds, allowing for precision slicing and massive combos. It also fills your multiplier (x3 in the UI).
+Corresponds to: Your Focus Level input.
+Step 5 & 6: The Scroll of Wisdom (n8n - Peripipe, Google Sheets)
+Game Narrative: After the level ends, Sensei Tana appears with the "Scroll of Wisdom," which analyzes your performance.
+Action: The n8n workflow generates the analysis and saves it.
+
+
+Technical Mapping:
+Generate Analysis (Peripipe): n8n calculates your score (Average Task Impact), combo streaks (Average Focus), and bombs hit (Distractions). It generates insights.
+Google Sheets: The analysis is written onto a new line in the "Ancient Scrolls" (your Google Sheet) for a permanent record.
+Step 7: The Evening Reflection (Daily Reminders & Response)
+Game Narrative: At the end of the day, Sensei Tana sends you a message. "The sun sets. Reflect on your training. What will you conquer tomorrow?"
+
+Action: You receive a daily reminder notification. The insights from the Daily Reports table ("Your focus wavered when faced with social media distractions. Tomorrow, we will train to resist that temptation.") are formatted and sent to you as a personalized message.
+
+Technical Mapping:
+
+The Daily Reminder nodes trigger.
+Format for Export (Radvice): Takes the insights from the Daily Reports table.
+Response: Sends the formatted, personalized wisdom to you via email or a chat app.
+Storylines In Between Levels
+The game isn't just a series of one-off days. It's a journey.
+Week 1: The Path of the Novice. Levels are simpler, with fewer distractions. Sensei Tana’s advice is foundational: "A clean swipe begins with a clear mind." The end-of-week report is your first "Belt Test."
+
+Week 2: The Forest of Procrastination. A new element is introduced: "Rotten Fruit." These are tasks from the previous day that you didn't complete. They are worth negative points if you slice them, forcing you to deal with your backlog.
+
+Week 3: The Mountain of Burnout. The storyline focuses on feeling overwhelmed. The game reflects this with levels that start with a low "Focus Bar" and more Distraction Bombs. Sensei Tana's advice shifts to sustainability and rest: "Even the sharpest blade must be sheathed to keep its edge."
+
+Boss Battles (End of Month/Quarter): A major project or goal becomes a "Chaos Demon" boss. This isn't one fruit, but a massive, multi-stage monster. You have to complete a series of slicing patterns (representing project milestones) to defeat it, using all the skills you've learned. Defeating it unlocks a new cosmetic item for KAI or a new background for the Dojo.
+
